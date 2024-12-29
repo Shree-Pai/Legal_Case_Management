@@ -23,8 +23,9 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///schema.sql'  # Example database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/legal_case_management'
 app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
+
 
 # Set the custom JSON encoder
 app.json_encoder = CustomJSONEncoder
@@ -34,6 +35,7 @@ db.init_app(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
+print("Database is connected")
 CORS(app)
 
 @app.route('/cors', methods=['GET'])
