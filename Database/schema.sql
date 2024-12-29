@@ -115,41 +115,34 @@ LEFT JOIN
 -- Triggers Section
 DELIMITER $$
 
--- Prevent appointments with invalid times
-CREATE TRIGGER before_insert_appointments
+-- Replace the multiple appointment triggers with a single combined trigger
+CREATE TRIGGER before_insert_appointments_validation
 BEFORE INSERT ON appointments
 FOR EACH ROW
 BEGIN
+    -- Declare all variables first
+    DECLARE case_status VARCHAR(20);
+    DECLARE existing_appointments INT;
+    
+    -- Check appointment time (9 AM to 6 PM)
     IF NEW.appointment_time NOT BETWEEN '09:00:00' AND '18:00:00' THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Appointment time must be between 9:00 AM and 6:00 PM.';
     END IF;
-END$$
 
--- Prevent booking appointments for cases with status Closed
-CREATE TRIGGER before_insert_appointments_check_case_status
-BEFORE INSERT ON appointments
-FOR EACH ROW
-BEGIN
-    DECLARE case_status VARCHAR(20);
+    -- Check for closed cases
+    IF NEW.case_id IS NOT NULL THEN
+        SELECT status INTO case_status
+        FROM cases
+        WHERE case_id = NEW.case_id;
 
-    SELECT status INTO case_status
-    FROM cases
-    WHERE case_id = NEW.case_id;
-
-    IF case_status = 'Closed' THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot book an appointment for a closed case.';
+        IF case_status = 'Closed' THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cannot book an appointment for a closed case.';
+        END IF;
     END IF;
-END$$
 
--- Prevent overlapping appointments for the same lawyer
-CREATE TRIGGER prevent_overlapping_appointments
-BEFORE INSERT ON appointments
-FOR EACH ROW
-BEGIN
-    DECLARE existing_appointments INT;
-
+    -- Check for overlapping appointments
     SELECT COUNT(*) INTO existing_appointments
     FROM appointments
     WHERE lawyer_id = NEW.lawyer_id
@@ -160,13 +153,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Lawyer already has an appointment at this date and time.';
     END IF;
-END$$
 
--- Validate appointment date
-CREATE TRIGGER validate_appointment_date
-BEFORE INSERT ON appointments
-FOR EACH ROW
-BEGIN
+    -- Validate appointment date
     IF NEW.appointment_date < CURDATE() THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Appointment date cannot be in the past.';
