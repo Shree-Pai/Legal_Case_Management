@@ -1,0 +1,102 @@
+/* General container styles */
+.container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Adjust gap as needed */
+}
+
+/* Form section with background color */
+.form-container {
+  background-color: #2c3e50; /* Form's background color */
+  padding: 20px;
+  border-radius: 8px; /* Optional rounded corners */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for better separation */
+}
+
+/* Table section with different background color */
+.table-container {
+  background-color: #34495e; /* Table's background color */
+  padding: 20px;
+  border-radius: 8px; /* Optional rounded corners */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for better separation */
+}
+
+/* Form styles */
+.form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Input and textarea styles */
+input, textarea {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #2c3e50;
+  color: #fff;
+  font-size: 14px;
+}
+
+textarea {
+  height: 100px;
+}
+
+input:focus, textarea:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+/* Button styles */
+button {
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button[type="submit"] {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+}
+
+button.delete {
+  background-color: #DC3545;
+  color: white;
+  border: none;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  color: #fff;
+  background-color: #34495e;
+}
+
+td {
+  color: #fff;
+  background-color: #2c3e50;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+button.delete:hover {
+  background-color: #c82333;
+}
