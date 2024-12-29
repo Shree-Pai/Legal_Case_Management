@@ -83,51 +83,18 @@ export const getDashboardData = async () => {
 
 // ------------------- Profile API -------------------
 
-// // Add Profile
-// export const addProfile = () => axios.get(`${API_URL}/profile`);
-
-// Edit Profile
 export const editProfile = (profileId, data) =>
   axios.put(`${API_URL}/profile/${profileId}`, data);
 
-// ------------------- Lawyer Schedule API -------------------
+// ------------------- Lawyers API -------------------
 
-// Fetch all lawyer schedules
-export const getLawyerSchedules = async () => {
-    const response = await axios.get(`${API_URL}/lawyer-schedule`);
-    return response.data; // Expected response: Array of schedules
-  };
-  
-  // Add a new lawyer schedule
-  export const addLawyerSchedule = async (data) => {
-    // `data` should include { lawyerName, date, courtTime, appointments }
-    const response = await axios.post(`${API_URL}/lawyer-schedule`, data);
-    return response.data; // Expected response: Created schedule object
-  };
-  
-  // Update an existing lawyer schedule
-  export const updateLawyerSchedule = async (scheduleId, data) => {
-    // `data` should include updated fields: { lawyerName, date, courtTime, appointments }
-    const response = await axios.put(
-      `${API_URL}/lawyer-schedule/${scheduleId}`,
-      data
-    );
-    return response.data; // Expected response: Updated schedule object
-  };
-  
-  // Delete a lawyer schedule
-  export const deleteLawyerSchedule = async (scheduleId) => {
-    const response = await axios.delete(
-      `${API_URL}/lawyer-schedule/${scheduleId}`
-    );
-    return response.data; // Expected response: { message: 'Schedule deleted successfully' }
-  };
-  
-  // Filter lawyer schedules by date range
-  export const filterSchedulesByDate = async (startDate, endDate) => {
-    const response = await axios.get(
-      `${API_URL}/lawyer-schedule?start_date=${startDate}&end_date=${endDate}`
-    );
-    return response.data; // Expected response: Array of filtered schedules
-  };
+export const getLawyers = () => axios.get(`${API_URL}/lawyers`); // Get all lawyers
+export const addLawyer = (data) => axios.post(`${API_URL}/lawyers`, data); // Add new lawyer
+export const updateLawyer = (lawyerId, data) =>
+  axios.put(`${API_URL}/lawyers/${lawyerId}`, data); // Update lawyer details
+export const deleteLawyer = (lawyerId) =>
+  axios.delete(`${API_URL}/lawyers/${lawyerId}`); // Delete lawyer by ID
+
+
+
   

@@ -10,7 +10,7 @@ const Sidebar = () => {
         { name: "Clients", path: "/dashboard/clients" },
         { name: "Cases", path: "/dashboard/cases" },
         { name: "Appointments", path: "/dashboard/appointments" },
-        { name: "Schedule", path: "/dashboard/schedule" }
+        { name: "Lawyer", path: "/dashboard/lawyer"}
       ],
     },
   ];

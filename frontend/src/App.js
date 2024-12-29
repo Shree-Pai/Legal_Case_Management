@@ -9,7 +9,7 @@ import Cases from "./Components/Cases";
 import Clients from "./Components/Clients";
 import Appointments from "./Components/Appointments";
 import Profile from "./Components/profile"; // Profile Page Component
-import EditProfile from "./Components/EditProfile";
+import Lawyer from "./Components/Lawyer";
 import Schedule from "./Components/schedule";
 
 function App() {
@@ -94,7 +94,6 @@ function App() {
 
           {/* Profile Page */}
           <Route path="/profile" element={<Profile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
 
           {/* Dashboard and Admin Routes */}
           <Route
@@ -109,6 +108,7 @@ function App() {
                     <Route path="/clients" element={<Clients />} />
                     <Route path="/appointments" element={<Appointments />} />
                     <Route path="/schedule" element={<Schedule />} />
+                    <Route path="lawyer" element={<Lawyer />}/>
                   </Routes>
                 </div>
               </div>

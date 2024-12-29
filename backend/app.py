@@ -26,7 +26,6 @@ app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///schema.sql'  # Example database URI
 app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
 
-
 # Set the custom JSON encoder
 app.json_encoder = CustomJSONEncoder
 
@@ -35,7 +34,6 @@ db.init_app(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-print("Database is connected")
 CORS(app)
 
 @app.route('/cors', methods=['GET'])
@@ -125,53 +123,132 @@ def logout_admin():
     return jsonify(message="You have been logged out successfully"), 200
 
 
+# Get all lawyers
+@app.route('/lawyers', methods=['GET'])
+def get_lawyers():
+    lawyers = Lawyer.query.all()
+    lawyer_list = []
+    
+    for lawyer in lawyers:
+        lawyer_list.append({
+            'lawyer_id': lawyer.lawyer_id,
+            'name': lawyer.name,
+            'email': lawyer.email,
+            'experience_years': lawyer.experience_years,
+            'cases_won': lawyer.cases_won,
+            'cases_lost': lawyer.cases_lost,
+            'phone': lawyer.phone,
+            'address': lawyer.address,
+            'date_of_birth': lawyer.date_of_birth,
+            'specialization': lawyer.specialization
+        })
+    
+    return jsonify(lawyer_list), 200
 
 
-@app.route('/lawyer_by_email', methods=['GET'])
-def get_lawyer_details():
-    # Get email from the query parameter
-    email = request.args.get('email')
+@app.route('/lawyers', methods=['POST'])
+def add_lawyer():
+    try:
+        # Parse input data
+        data = request.get_json()
+        if not data:
+            return jsonify({'message': 'No input data provided'}), 400
 
-    # Search for the lawyer by email
-    lawyer = Lawyer.query.filter_by(email=email).first()
+        # Extract lawyer data
+        name = data.get('name')
+        email = data.get('email')
+        experience_years = data.get('experience_years')
+        cases_won = data.get('cases_won')
+        cases_lost = data.get('cases_lost')
+        phone = data.get('phone')
+        address = data.get('address')
+        date_of_birth_str = data.get('date_of_birth')  # Expecting 'YYYY-MM-DD'
+        specialization = data.get('specialization')
 
+        # Validate mandatory fields
+        mandatory_fields = [name, email, experience_years, cases_won, cases_lost, phone, address, date_of_birth_str, specialization]
+        if not all(mandatory_fields):
+            return jsonify({'message': 'All fields are required'}), 400
+
+        # Convert the string to a Python date object
+        try:
+            date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'message': 'Invalid date format, use YYYY-MM-DD'}), 400
+
+        # Check if the email already exists in the database
+        if Lawyer.query.filter_by(email=email).first():
+            return jsonify({'message': 'Email already exists'}), 400
+
+        # Check if the phone number already exists (optional if phone is unique)
+        if Lawyer.query.filter_by(phone=phone).first():
+            return jsonify({'message': 'Phone number already exists'}), 400
+
+        # Create a new lawyer instance
+        new_lawyer = Lawyer(
+            name=name,
+            email=email,
+            experience_years=experience_years,
+            cases_won=cases_won,
+            cases_lost=cases_lost,
+            phone=phone,
+            address=address,
+            date_of_birth=date_of_birth,
+            specialization=specialization
+        )
+
+        # Add lawyer to the database
+        db.session.add(new_lawyer)
+        db.session.commit()
+        return jsonify({'message': 'Lawyer added successfully'}), 201
+
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({'message': 'Integrity error occurred, check for duplicates or constraints', 'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'message': 'An unexpected error occurred', 'error': str(e)}), 500
+
+
+# Update lawyer details
+@app.route('/lawyers/<int:lawyer_id>', methods=['PUT'])
+def update_lawyer(lawyer_id):
+    data = request.get_json()
+
+    # Find lawyer by lawyer_id
+    lawyer = Lawyer.query.get(lawyer_id)
     if not lawyer:
         return jsonify({'message': 'Lawyer not found'}), 404
 
-    # Return all the lawyer's details in the response
-    return jsonify({
-        'lawyer_id': lawyer.lawyer_id,
-        'name': lawyer.name,
-        'email': lawyer.email,
-        'password': lawyer.password,  # Avoid returning sensitive data like password in production
-        'experience_years': lawyer.experience_years,
-        'cases_won': lawyer.cases_won,
-        'cases_lost': lawyer.cases_lost,
-        'phone': lawyer.phone,
-        'address': lawyer.address,
-        'date_of_birth': lawyer.date_of_birth
-    }), 200
+    # Update lawyer details
+    lawyer.name = data.get('name', lawyer.name)
+    lawyer.email = data.get('email', lawyer.email)
+    lawyer.experience_years = data.get('experience_years', lawyer.experience_years)
+    lawyer.cases_won = data.get('cases_won', lawyer.cases_won)
+    lawyer.cases_lost = data.get('cases_lost', lawyer.cases_lost)
+    lawyer.phone = data.get('phone', lawyer.phone)
+    lawyer.address = data.get('address', lawyer.address)
+    lawyer.date_of_birth = data.get('date_of_birth', lawyer.date_of_birth)
+    lawyer.specialization = data.get('specialization', lawyer.specialization)
 
-    # Get email from the query parameter
-    email = request.args.get('email')
+    # Commit changes to the database
+    db.session.commit()
 
-    # Search for the lawyer by email
-    lawyer = Lawyer.query.filter_by(email=email).first()
+    return jsonify({'message': 'Lawyer updated successfully'}), 200
 
+# Delete a lawyer
+@app.route('/lawyers/<int:lawyer_id>', methods=['DELETE'])
+def delete_lawyer(lawyer_id):
+    # Find lawyer by lawyer_id
+    lawyer = Lawyer.query.get(lawyer_id)
     if not lawyer:
         return jsonify({'message': 'Lawyer not found'}), 404
 
-    # Return the lawyer's details in the response
-    return jsonify({
-        'name': lawyer.name,
-        'email': lawyer.email,
-        'experience_years': lawyer.experience_years,
-        'cases_won': lawyer.cases_won,
-        'cases_lost': lawyer.cases_lost,
-        'phone': lawyer.phone,
-        'address': lawyer.address,
-        'date_of_birth': lawyer.date_of_birth
-    }), 200
+    # Delete the lawyer from the database
+    db.session.delete(lawyer)
+    db.session.commit()
+
+    return jsonify({'message': 'Lawyer deleted successfully'}), 200
+
 
 @app.route('/profile', methods=['GET'])
 def get_all_lawyers():
