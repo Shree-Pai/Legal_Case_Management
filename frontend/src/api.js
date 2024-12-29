@@ -14,16 +14,22 @@ export const register = async (data) => {
 // Login API
 export const login = async (data) => {
   try {
-    const response = await axios.post("http://localhost:5000/admin/login", data); // Replace with actual API endpoint
-    const { token } = response.data;
+    console.log('Attempting login with:', data);
+    const response = await axios.post(`${API_URL}/admin/login`, data);
+    console.log('Login response:', response.data);
 
-    // Store the token in localStorage
-    localStorage.setItem("userToken", token);
+    if (response.data.token) {
+      // Store token with Bearer prefix
+      localStorage.setItem('userToken', `Bearer ${response.data.token}`);
+      localStorage.setItem('adminId', response.data.admin_id.toString());
+      localStorage.setItem('adminName', response.data.name);
+      localStorage.setItem('adminEmail', response.data.email);
+    }
 
-    return response.data; // Return additional data if needed (e.g., user info)
+    return response.data;
   } catch (error) {
-    console.error("Login error:", error);
-    throw error; // Propagate error to handle it in the UI
+    console.error('Login error:', error.response?.data || error);
+    throw error;
   }
 };
 
@@ -40,94 +46,257 @@ export const addProfile = async (token) => {
 
 // ------------------- Clients API -------------------
 
-export const getClients = () => axios.get(`${API_URL}/clients`);
-export const addClient = (data) => axios.post(`${API_URL}/clients`, data);
-export const updateClient = (clientId, data) =>
-  axios.put(`${API_URL}/clients/${clientId}`, data);
-export const deleteClient = (clientId) =>
-  axios.delete(`${API_URL}/clients/${clientId}`);
+export const getClients = async () => {
+  console.log('Fetching clients...');
+  try {
+    const response = await axios.get(`${API_URL}/clients`);
+    console.log('Clients response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error fetching clients:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const addClient = async (data) => {
+  console.log('Sending client data:', data);
+  try {
+    const response = await axios.post(`${API_URL}/clients`, data);
+    console.log('Response from server:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error adding client:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const updateClient = async (clientId, data) => {
+  console.log('Updating client:', clientId, data);
+  try {
+    const response = await axios.put(`${API_URL}/clients/${clientId}`, data);
+    console.log('Update response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error updating client:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteClient = async (clientId) => {
+  console.log('Deleting client:', clientId);
+  try {
+    const response = await axios.delete(`${API_URL}/clients/${clientId}`);
+    console.log('Delete response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error deleting client:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 // ------------------- Cases API -------------------
 
-export const getCases = () => axios.get(`${API_URL}/cases`);
-export const addCase = (data) => axios.post(`${API_URL}/cases`, data);
-export const updateCase = (caseId, data) =>
-  axios.put(`${API_URL}/cases/${caseId}`, data);
-export const deleteCase = (caseId) =>
-  axios.delete(`${API_URL}/cases?case_id=${caseId}`);
+export const getCases = async () => {
+  console.log('Fetching cases...');
+  try {
+    const response = await axios.get(`${API_URL}/cases`);
+    console.log('Cases response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error fetching cases:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const addCase = async (data) => {
+  console.log('Sending case data:', data);
+  try {
+    const response = await axios.post(`${API_URL}/cases`, data);
+    console.log('Response from server:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error adding case:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const updateCase = async (caseId, data) => {
+  console.log('Updating case:', caseId, data);
+  try {
+    const response = await axios.put(`${API_URL}/cases/${caseId}`, data);
+    console.log('Update response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error updating case:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteCase = async (caseId) => {
+  console.log('Deleting case:', caseId);
+  try {
+    const response = await axios.delete(`${API_URL}/cases/${caseId}`);
+    console.log('Delete response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error deleting case:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 // ------------------- Appointments API -------------------
 
-export const getAppointments = () => axios.get(`${API_URL}/appointments`);
-export const addAppointment = (data) => axios.post(`${API_URL}/appointments`, data);
-export const updateAppointment = (appointmentId, data) =>
-  axios.put(`${API_URL}/appointments/${appointmentId}`, data);
-export const deleteAppointment = (appointmentId) =>
-  axios.delete(`${API_URL}/appointments/${appointmentId}`);
+export const getAppointments = async () => {
+  console.log('Fetching appointments...');
+  try {
+    const response = await axios.get(`${API_URL}/appointments`);
+    console.log('Appointments response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error fetching appointments:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const addAppointment = async (data) => {
+  console.log('Sending appointment data:', data);
+  try {
+    const response = await axios.post(`${API_URL}/appointments`, data);
+    console.log('Response from server:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error adding appointment:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const updateAppointment = async (appointmentId, data) => {
+  console.log('Updating appointment:', appointmentId, data);
+  try {
+    const response = await axios.put(`${API_URL}/appointments/${appointmentId}`, data);
+    console.log('Update response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error updating appointment:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteAppointment = async (appointmentId) => {
+  console.log('Deleting appointment:', appointmentId);
+  try {
+    const response = await axios.delete(`${API_URL}/appointments/${appointmentId}`);
+    console.log('Delete response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error deleting appointment:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 // ------------------- Dashboard API -------------------
 
 export const getDashboardData = async () => {
-  // Mock data for dashboard stats
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        total_clients: 50,
-        total_cases: 100,
-        important_cases: 10,
-        archived_cases: 5,
-      });
-    }, 1000); // Simulate 1-second delay
-  });
+  try {
+    const response = await axios.get(`${API_URL}/dashboard`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    throw error;
+  }
 };
 
 // ------------------- Profile API -------------------
 
-// // Add Profile
-// export const addProfile = () => axios.get(`${API_URL}/profile`);
+const checkAndRefreshToken = async () => {
+  const token = localStorage.getItem('userToken');
+  if (!token) return false;
 
-// Edit Profile
-export const editProfile = (profileId, data) =>
-  axios.put(`${API_URL}/profile/${profileId}`, data);
+  try {
+    await axios.get(`${API_URL}/verify-token`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return true;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return false;
+  }
+};
 
-// ------------------- Lawyer Schedule API -------------------
+export const getProfile = async (adminId) => {
+  try {
+    const isTokenValid = await checkAndRefreshToken();
+    if (!isTokenValid) {
+      throw new Error('Invalid or expired token');
+    }
+    if (!adminId) {
+      throw new Error('Admin ID is required');
+    }
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
 
-// Fetch all lawyer schedules
-export const getLawyerSchedules = async () => {
-    const response = await axios.get(`${API_URL}/lawyer-schedule`);
-    return response.data; // Expected response: Array of schedules
-  };
-  
-  // Add a new lawyer schedule
-  export const addLawyerSchedule = async (data) => {
-    // `data` should include { lawyerName, date, courtTime, appointments }
-    const response = await axios.post(`${API_URL}/lawyer-schedule`, data);
-    return response.data; // Expected response: Created schedule object
-  };
-  
-  // Update an existing lawyer schedule
-  export const updateLawyerSchedule = async (scheduleId, data) => {
-    // `data` should include updated fields: { lawyerName, date, courtTime, appointments }
-    const response = await axios.put(
-      `${API_URL}/lawyer-schedule/${scheduleId}`,
-      data
-    );
-    return response.data; // Expected response: Updated schedule object
-  };
-  
-  // Delete a lawyer schedule
-  export const deleteLawyerSchedule = async (scheduleId) => {
-    const response = await axios.delete(
-      `${API_URL}/lawyer-schedule/${scheduleId}`
-    );
-    return response.data; // Expected response: { message: 'Schedule deleted successfully' }
-  };
-  
-  // Filter lawyer schedules by date range
-  export const filterSchedulesByDate = async (startDate, endDate) => {
-    const response = await axios.get(
-      `${API_URL}/lawyer-schedule?start_date=${startDate}&end_date=${endDate}`
-    );
-    return response.data; // Expected response: Array of filtered schedules
-  };
+    const response = await axios.get(`${API_URL}/profile/${adminId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    throw error;
+  }
+};
+
+export const updateProfile = async (adminId, data) => {
+  try {
+    if (!adminId) {
+      throw new Error('Admin ID is required');
+    }
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await axios.put(`${API_URL}/profile/${adminId}`, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    if (error.response?.status === 422) {
+      throw new Error('Invalid authentication token');
+    }
+    throw error;
+  }
+};
+
+// ------------------- Lawyers API -------------------
+
+export const getLawyers = () => axios.get(`${API_URL}/lawyers`); // Get all lawyers
+export const addLawyer = async (data) => {
+  console.log('Sending lawyer data:', data);
+  try {
+    const response = await axios.post(`${API_URL}/lawyers`, data);
+    console.log('Response from server:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error adding lawyer:', error.response?.data || error.message);
+    throw error;
+  }
+};
+export const updateLawyer = (lawyerId, data) =>
+  axios.put(`${API_URL}/lawyers/${lawyerId}`, data); // Update lawyer details
+export const deleteLawyer = (lawyerId) =>
+  axios.delete(`${API_URL}/lawyers/${lawyerId}`); // Delete lawyer by ID
+
+
+
   

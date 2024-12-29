@@ -1,100 +1,66 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Manage login state
-  const location = useLocation(); // Get current location to check for the home page, login, or register page
+const Navbar = ({ isLoggedIn, handleLogout }) => {
+  const navigate = useNavigate();
 
   const navStyle = {
+    backgroundColor: "#2c3e50",
+    padding: "1rem",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "15px 30px",
-    background: "linear-gradient(45deg, #3498db, #2980b9)", // Gradient background for a sleek look
     color: "white",
+  };
+
+  const brandStyle = {
+    fontSize: "1.5rem",
+    fontWeight: "bold",
   };
 
   const linkStyle = {
     color: "white",
     textDecoration: "none",
-    margin: "0 15px",
-    fontSize: "16px",
-    fontWeight: "500",
-    transition: "color 0.3s ease", // Smooth transition for hover effect
   };
 
-  const linkHoverStyle = {
-    color: "#ecf0f1", // Light color on hover
+  const buttonStyle = {
+    padding: "0.5rem 1rem",
+    backgroundColor: "#3498db",
+    border: "none",
+    borderRadius: "4px",
+    color: "white",
+    cursor: "pointer",
+    textDecoration: "none",
+    marginLeft: "10px",
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false); // Set the login state to false on logout
-  };
-
-  const handleLogin = () => {
-    setIsLoggedIn(true); // Set the login state to true on login
+  const handleLogoutClick = () => {
+    localStorage.clear(); // Clear all stored data
+    handleLogout();
+    navigate('/login');
   };
 
   return (
     <nav style={navStyle}>
-      <div>
+      <div style={brandStyle}>
         <Link to="/" style={linkStyle}>
-          Home
+          Legal Case Management
         </Link>
       </div>
       <div>
-        {isLoggedIn && location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/" ? (
-          // Display profile and logout when logged in, but not on the login, register, or home page
-          <>
-            <Link
-              to="/dashboard"
-              style={linkStyle}
-              onMouseEnter={(e) => (e.target.style.color = linkHoverStyle.color)}
-              onMouseLeave={(e) => (e.target.style.color = linkStyle.color)}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/profile"
-              style={linkStyle}
-              onMouseEnter={(e) => (e.target.style.color = linkHoverStyle.color)}
-              onMouseLeave={(e) => (e.target.style.color = linkStyle.color)}
-            >
-              Profile
-            </Link>
-            <Link
-              to="/"
-              style={linkStyle}
-              onClick={handleLogout} // Trigger logout function when clicking logout link
-              onMouseEnter={(e) => (e.target.style.color = linkHoverStyle.color)}
-              onMouseLeave={(e) => (e.target.style.color = linkStyle.color)}
-            >
-              Logout
-            </Link>
-          </>
+        {isLoggedIn && (
+          <Link to="/profile" style={buttonStyle}>
+            Profile
+          </Link>
+        )}
+        {isLoggedIn ? (
+          <button onClick={handleLogoutClick} style={buttonStyle}>
+            Logout
+          </button>
         ) : (
-          // Display login and register links when not logged in, and hide them on the login/register pages
-          location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/" && (
-            <>
-              <Link
-                to="/login"
-                style={linkStyle}
-                onMouseEnter={(e) => (e.target.style.color = linkHoverStyle.color)}
-                onMouseLeave={(e) => (e.target.style.color = linkStyle.color)}
-                onClick={handleLogin} // Trigger login function when clicking login link
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                style={linkStyle}
-                onMouseEnter={(e) => (e.target.style.color = linkHoverStyle.color)}
-                onMouseLeave={(e) => (e.target.style.color = linkStyle.color)}
-              >
-                Register
-              </Link>
-            </>
-          )
+          <Link to="/login" style={buttonStyle}>
+            Login
+          </Link>
         )}
       </div>
     </nav>

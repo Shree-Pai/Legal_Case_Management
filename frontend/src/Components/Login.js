@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"; // Import Axios for HTTP requests
+import { login } from "../api"; // Import login function from api.js
 
-const Login = () => {
+const Login = ({ handleLogin }) => { // Receive handleLogin as prop
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // For redirecting after successful login
+  const [loading, setLoading] = useState(false); // Add loading state
+  const navigate = useNavigate();
 
   const containerStyle = {
     display: "flex",
@@ -79,30 +80,29 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    // Form validation: Check if username and password are filled
-    if (!username || !password) {
-      setError("Both fields are required");
-    } else {
-      setError("");
+    try {
+      const formData = {
+        email: username,
+        password: password
+      };
 
-      try {
-        // Sending a POST request to the backend for login authentication
-        const response = await axios.post("http://127.0.0.1:5000/admin/login", {
-          name: username,    // Ensure this matches the name field in the backend
-          password: password
-        });
-
-        // Assuming backend sends a response with a success message and user data
-        console.log("Login successful:", response.data);
-
-        // Redirect to the dashboard (or another page) after successful login
-        navigate("/dashboard");  // Adjust the redirect path as needed
-
-      } catch (err) {
-        console.error("Login failed:", err);
-        setError("Invalid username or password");  // Set error message if login fails
-      }
+      const response = await login(formData);
+      
+      // Store token and user data
+      localStorage.setItem('userToken', response.token);
+      localStorage.setItem('adminId', response.admin_id.toString());
+      localStorage.setItem('adminName', response.name);
+      localStorage.setItem('adminEmail', response.email);
+      
+      handleLogin();
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,7 +112,7 @@ const Login = () => {
       <form onSubmit={handleSubmit} style={formStyle}>
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Email" // Changed from Username to Email
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={inputStyle}
@@ -130,8 +130,9 @@ const Login = () => {
           style={buttonStyle}
           onMouseEnter={handleButtonHover}
           onMouseLeave={handleButtonMouseOut}
+          disabled={loading} // Disable button while loading
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
       <Link to="/register" style={linkStyle}>

@@ -10,7 +10,7 @@ const Sidebar = () => {
         { name: "Clients", path: "/dashboard/clients" },
         { name: "Cases", path: "/dashboard/cases" },
         { name: "Appointments", path: "/dashboard/appointments" },
-        { name: "Schedule", path: "/dashboard/schedule" }
+        { name: "Lawyer", path: "/dashboard/lawyer"}
       ],
     },
   ];
@@ -56,6 +56,16 @@ const Sidebar = () => {
             )}
           </li>
         ))}
+        <li style={{ margin: "15px 0" }}>
+          <Link
+            to="/dashboard/view-details"
+            className="nav-link"
+            style={{ color: "#fff", textDecoration: "none" }}
+          >
+            <i className="fas fa-eye"></i>
+            <span>View Details</span>
+          </Link>
+        </li>
       </ul>
     </div>
   );

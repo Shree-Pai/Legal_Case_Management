@@ -19,17 +19,16 @@ class Admin(db.Model):
 
 class Lawyer(db.Model):
     __tablename__ = 'lawyers'
-
-    lawyer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    lawyer_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
     experience_years = db.Column(db.Integer, nullable=False)
     cases_won = db.Column(db.Integer, nullable=False)
     cases_lost = db.Column(db.Integer, nullable=False)
-    phone = db.Column(db.String(15), nullable=True)
-    address = db.Column(db.Text, nullable=True)
-    date_of_birth = db.Column(db.Date, nullable=True)
-    specialization = db.Column(db.String(255), nullable=True)
+    phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(255), nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=False)
+    specialization = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return f"<Lawyer {self.name}>"
@@ -63,7 +62,7 @@ class Case(db.Model):
     lawyer = db.relationship('Lawyer', backref=db.backref('cases', lazy=True))
 
     def __repr__(self):
-        return f"<Case {self.title}>"
+        return f"<Case {self.case_id}: {self.title} (Client: {self.client_id})>"
 
 class Appointment(db.Model):
     __tablename__ = 'appointments'

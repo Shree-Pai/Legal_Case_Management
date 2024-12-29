@@ -1,108 +1,90 @@
 import React, { useState, useEffect } from "react";
 import { getDashboardData } from "../api";
+import "./styles.css";
 
 const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState(null); // Set initial state to null
-  const [loading, setLoading] = useState(true); // For loading state
-  const [error, setError] = useState(null); // For error state
+  const [dashboardData, setDashboardData] = useState({
+    total_lawyers: 0,
+    total_clients: 0,
+    total_cases: 0,
+    total_appointments: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getDashboardData()
-      .then((response) => {
-        setDashboardData(response);
-        setLoading(false); // Data fetched successfully
-      })
-      .catch((error) => {
-        setError("Error fetching dashboard data.");
-        setLoading(false); // Data fetch failed
-      });
+    fetchDashboardData();
   }, []);
 
-  const containerStyle = {
-    padding: "30px",
-    maxWidth: "1000px",
-    margin: "auto",
-    fontFamily: "Arial, sans-serif",
-    backgroundColor: "#2c3e50", // Dark background for the container
-    color: "#ecf0f1", // Light text color
-    borderRadius: "10px",
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const data = await getDashboardData();
+      setDashboardData(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch dashboard data');
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const cardStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", // Adjusted for responsiveness
-    gap: "20px",
-    marginTop: "30px",
-  };
-
-  const card = {
-    padding: "20px",
-    borderRadius: "8px",
-    backgroundColor: "#34495e", // Darker card background
-    color: "white",
-    textAlign: "center",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Slightly stronger shadow
-    transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-  };
-
-  const cardTitle = {
-    fontSize: "20px",
-    fontWeight: "600",
-    marginBottom: "12px",
-    color: "#3498db", // A bright color for the title text
-  };
-
-  const cardValue = {
-    fontSize: "30px",
-    fontWeight: "bold",
-  };
-
-  const cardHover = {
-    "&:hover": {
-      transform: "scale(1.05)", // Scale up on hover for interactivity
-      boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.5)", // Stronger shadow on hover
+  const cards = [
+    {
+      title: 'Total Lawyers',
+      value: dashboardData.total_lawyers,
+      color: '#3498db'
     },
-  };
+    {
+      title: 'Total Clients',
+      value: dashboardData.total_clients,
+      color: '#2ecc71'
+    },
+    {
+      title: 'Total Cases',
+      value: dashboardData.total_cases,
+      color: '#e74c3c'
+    },
+    {
+      title: 'Total Appointments',
+      value: dashboardData.total_appointments,
+      color: '#f39c12'
+    }
+  ];
 
-  // Loading and Error Handling UI
   if (loading) {
     return (
-      <div style={containerStyle}>
-        <h2 style={{ textAlign: "center" }}>Dashboard</h2>
-        <p>Loading data...</p>
+      <div className="dashboard-container">
+        <div className="loading">Loading dashboard data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={containerStyle}>
-        <h2 style={{ textAlign: "center" }}>Dashboard</h2>
-        <p style={{ color: "red", textAlign: "center" }}>{error}</p>
+      <div className="dashboard-container">
+        <div className="error-message">{error}</div>
       </div>
     );
   }
 
   return (
-    <div style={containerStyle}>
-      <h2 style={{ textAlign: "center", marginBottom: "30px" }}>Dashboard</h2>
-      <div style={cardStyle}>
-        <div style={card}>
-          <div style={cardTitle}>Total Clients</div>
-          <div style={cardValue}>{dashboardData?.total_clients || 0}</div> {/* Safely accessing data */}
-        </div>
-        <div style={card}>
-          <div style={cardTitle}>Total Cases</div>
-          <div style={cardValue}>{dashboardData?.total_cases || 0}</div>
-        </div>
-        <div style={card}>
-          <div style={cardTitle}>Important Cases</div>
-          <div style={cardValue}>{dashboardData?.important_cases || 0}</div>
-        </div>
-        <div style={card}>
-          <div style={cardTitle}>Archived Cases</div>
-          <div style={cardValue}>{dashboardData?.archived_cases || 0}</div>
-        </div>
+    <div className="dashboard-container">
+      <h1>Dashboard</h1>
+      <div className="dashboard-grid">
+        {cards.map((card, index) => (
+          <div 
+            key={index} 
+            className="dashboard-card"
+            style={{ borderColor: card.color }}
+          >
+            <h2>{card.title}</h2>
+            <p className="dashboard-value" style={{ color: card.color }}>
+              {card.value}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

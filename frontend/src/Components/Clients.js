@@ -1,100 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import './styles.css'; // Import the updated theme
-import axios from 'axios'; // To handle HTTP requests
+import './styles.css';
+import { getClients, addClient, updateClient, deleteClient, getLawyers } from '../api';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
-  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', address: '' });
-  const [editingClient, setEditingClient] = useState(null); // Track editing state
-  const [loading, setLoading] = useState(true); // Track loading state
-  const [error, setError] = useState(null); // Track error state
+  const [lawyers, setLawyers] = useState([]); // State for lawyers
+  const [newClient, setNewClient] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    lawyer_id: ''
+  });
+  const [editingClient, setEditingClient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch clients from the backend when the component is mounted
+  // Fetch clients and lawyers when component mounts
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get('http://localhost:5000/clients') // Ensure the correct backend URL with port 5000
-      .then((response) => {
-        setClients(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError('Failed to fetch clients');
-        setLoading(false);
-      });
+    fetchData();
   }, []);
 
-  // Handle input field changes
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [clientsResponse, lawyersResponse] = await Promise.all([
+        getClients(),
+        getLawyers()
+      ]);
+      setClients(clientsResponse.data);
+      setLawyers(lawyersResponse.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch data');
+      console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewClient({ ...newClient, [name]: value });
   };
 
-  // Handle add or update client submission
-  const handleAddOrUpdateClient = (e) => {
+  const handleAddOrUpdateClient = async (e) => {
     e.preventDefault();
     setLoading(true);
-    if (editingClient) {
-      // Update existing client
-      axios
-        .put(`http://localhost:5000/clients/${editingClient.client_id}`, newClient) // Update the URL with the port
-        .then((response) => {
-          setClients(
-            clients.map((client) =>
-              client.client_id === editingClient.client_id ? { ...client, ...newClient } : client
-            )
-          );
-          setEditingClient(null);
-          setLoading(false);
-        })
-        .catch((error) => {
-          setError('Failed to update client');
-          setLoading(false);
-        });
-    } else {
-      // Add new client
-      axios
-        .post('http://localhost:5000/clients', newClient) // Update the URL with the port
-        .then((response) => {
-          setClients([...clients, response.data]);
-          setLoading(false);
-        })
-        .catch((error) => {
-          setError('Failed to add new client');
-          setLoading(false);
-        });
+    setError(null);
+
+    try {
+      if (editingClient) {
+        const response = await updateClient(editingClient.client_id, newClient);
+        setClients(clients.map(client =>
+          client.client_id === editingClient.client_id ? response.data.data : client
+        ));
+        setEditingClient(null);
+      } else {
+        const response = await addClient(newClient);
+        if (response.data && response.data.data) {
+          setClients([...clients, response.data.data]);
+        }
+      }
+
+      // Reset form
+      setNewClient({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        lawyer_id: ''
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to process client');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
     }
-    setNewClient({ name: '', email: '', phone: '', address: '' });
   };
 
-  // Handle editing a client
   const handleEdit = (client) => {
     setEditingClient(client);
     setNewClient(client);
   };
 
-  // Handle deleting a client
-  const handleDelete = (client_id) => {
-    setLoading(true);
-    axios
-      .delete(`http://localhost:5000/clients/${client_id}`) // Update the URL with the port
-      .then(() => {
-        setClients(clients.filter((client) => client.client_id !== client_id));
-        setLoading(false);
-      })
-      .catch((error) => {
+  const handleDelete = async (clientId) => {
+    if (window.confirm('Are you sure you want to delete this client?')) {
+      setLoading(true);
+      try {
+        await deleteClient(clientId);
+        setClients(clients.filter(client => client.client_id !== clientId));
+      } catch (err) {
         setError('Failed to delete client');
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+  };
+
+  // Helper function to get lawyer name
+  const getLawyerName = (lawyerId) => {
+    const lawyer = lawyers.find(l => l.lawyer_id === lawyerId);
+    return lawyer ? lawyer.name : 'Not Assigned';
   };
 
   return (
     <div className="container">
       {/* Form Section */}
       <div className="form-container">
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#fff' }}>Clients</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#fff' }}>
+          {editingClient ? 'Edit Client' : 'Add Client'}
+        </h2>
 
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <div style={{
+            color: '#ff6b6b',
+            backgroundColor: '#2c3e50',
+            padding: '10px',
+            marginBottom: '20px',
+            borderRadius: '5px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleAddOrUpdateClient} className="form">
           <input
             type="text"
@@ -113,7 +143,7 @@ const Clients = () => {
             required
           />
           <input
-            type="number"
+            type="tel"
             name="phone"
             value={newClient.phone}
             onChange={handleInputChange}
@@ -127,6 +157,19 @@ const Clients = () => {
             placeholder="Address"
             required
           />
+          <select
+            name="lawyer_id"
+            value={newClient.lawyer_id}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Select Lawyer</option>
+            {lawyers.map((lawyer) => (
+              <option key={lawyer.lawyer_id} value={lawyer.lawyer_id}>
+                {lawyer.name}
+              </option>
+            ))}
+          </select>
           <button type="submit" disabled={loading}>
             {editingClient ? 'Update Client' : 'Add Client'}
           </button>
@@ -147,6 +190,7 @@ const Clients = () => {
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Address</th>
+                  <th>Lawyer</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -157,6 +201,7 @@ const Clients = () => {
                     <td>{client.email}</td>
                     <td>{client.phone}</td>
                     <td>{client.address}</td>
+                    <td>{getLawyerName(client.lawyer_id)}</td>
                     <td>
                       <button className="edit" onClick={() => handleEdit(client)}>
                         Edit

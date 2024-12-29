@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
 import Login from "./Components/Login";
 import Register from "./Components/Register";
 import Navbar from "./Components/navbar";
@@ -8,9 +8,18 @@ import Dashboard from "./Components/Dashboard";
 import Cases from "./Components/Cases";
 import Clients from "./Components/Clients";
 import Appointments from "./Components/Appointments";
-import Profile from "./Components/profile"; // Profile Page Component
-import EditProfile from "./Components/EditProfile";
+import Profile from "./Components/Profile";
+import Lawyer from "./Components/Lawyer";
 import Schedule from "./Components/schedule";
+import ViewDetails from './Components/ViewDetails';
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+  return children;
+};
 
 function App() {
   // Global state for login
@@ -92,26 +101,35 @@ function App() {
           <Route path="/login" element={<Login handleLogin={handleLogin} />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Profile Page */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-
-          {/* Dashboard and Admin Routes */}
+          {/* Protected routes */}
           <Route
             path="/dashboard/*"
             element={
-              <div style={{ display: "flex", backgroundColor: "#f4f6f7", minHeight: "100vh" }}>
-                <Sidebar />
-                <div style={{ flex: 1, padding: "20px" }}>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/cases" element={<Cases />} />
-                    <Route path="/clients" element={<Clients />} />
-                    <Route path="/appointments" element={<Appointments />} />
-                    <Route path="/schedule" element={<Schedule />} />
-                  </Routes>
+              <ProtectedRoute>
+                <div style={{ display: "flex", backgroundColor: "#f4f6f7", minHeight: "100vh" }}>
+                  <Sidebar />
+                  <div style={{ flex: 1, padding: "20px" }}>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/cases" element={<Cases />} />
+                      <Route path="/clients" element={<Clients />} />
+                      <Route path="/appointments" element={<Appointments />} />
+                      <Route path="/schedule" element={<Schedule />} />
+                      <Route path="/lawyer" element={<Lawyer />} />
+                      <Route path="/view-details" element={<ViewDetails />} />
+                    </Routes>
+                  </div>
                 </div>
-              </div>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
             }
           />
         </Routes>
