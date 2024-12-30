@@ -188,7 +188,7 @@ def add_lawyer():
         # Parse input data
         data = request.get_json()
         print('Received data:', data)  # Debug log
-        
+
         if not data:
             return jsonify({'message': 'No input data provided'}), 400
 
@@ -197,6 +197,19 @@ def add_lawyer():
             date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
         except ValueError:
             return jsonify({'message': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        # Validate numeric fields
+        if int(data['experience_years']) < 0:
+            return jsonify({'message': 'Experience cannot be negative'}), 400
+        if int(data['cases_won']) < 0:
+            return jsonify({'message': 'Number of cases won cannot be negative'}), 400
+        if int(data['cases_lost']) < 0:
+            return jsonify({'message': 'Number of cases lost cannot be negative'}), 400
+
+        # Check for duplicate email
+        existing_lawyer = Lawyer.query.filter_by(email=data['email']).first()
+        if existing_lawyer:
+            return jsonify({'message': 'Email already exists'}), 400
 
         # Create new lawyer instance
         new_lawyer = Lawyer(
@@ -240,6 +253,7 @@ def add_lawyer():
         print('Error adding lawyer:', str(e))  # Debug log
         db.session.rollback()
         return jsonify({'message': 'Error adding lawyer', 'error': str(e)}), 500
+
 
 
 # Update lawyer details
@@ -587,7 +601,7 @@ def add_appointment():
             # Convert date and time strings to Python objects
             appointment_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
             appointment_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-            
+
             print(f"Parsed date: {appointment_date}, time: {appointment_time}")
 
             # Validate required fields
@@ -595,6 +609,23 @@ def add_appointment():
             for field in required_fields:
                 if field not in data:
                     return jsonify({'message': f'Missing required field: {field}'}), 400
+
+            # Validate case status
+            case = Case.query.filter_by(case_id=int(data['case_id'])).first()
+            if not case:
+                return jsonify({'message': 'Case not found'}), 404
+            if case.status.lower() == 'closed':
+                return jsonify({'message': 'Appointments cannot be booked for closed cases'}), 400
+
+            # Check if lawyer is already booked at the requested time
+            existing_appointment = Appointment.query.filter_by(
+                lawyer_id=int(data['lawyer_id']),
+                appointment_date=appointment_date,
+                appointment_time=appointment_time
+            ).first()
+
+            if existing_appointment:
+                return jsonify({'message': f'Lawyer is already booked at {appointment_time} on {appointment_date}'}), 400
 
             # Create new appointment instance
             new_appointment = Appointment(
@@ -639,6 +670,8 @@ def add_appointment():
         print('Error adding appointment:', str(e))
         db.session.rollback()
         return jsonify({'message': 'Error adding appointment', 'error': str(e)}), 500
+
+
 
 @app.route('/appointments/<int:appointment_id>', methods=['PUT'])
 def update_appointment(appointment_id):

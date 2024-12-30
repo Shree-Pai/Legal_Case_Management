@@ -44,6 +44,22 @@ export const addProfile = async (token) => {
   return response.data; // Expected response: { name, email }
 };
 
+export const getDetails = async (type) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/details/${type}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching details:", error);
+    throw error;
+  }
+};
+
+
+
+
 // ------------------- Clients API -------------------
 
 export const getClients = async () => {

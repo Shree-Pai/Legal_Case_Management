@@ -11,6 +11,11 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     justifyContent: "space-between",
     alignItems: "center",
     color: "white",
+    position: "fixed", // Ensure the navbar stays fixed at the top
+    top: 0,            // Start at the top of the page
+    left: 0,           // Align to the left side of the page
+    right: 0,          // Align to the right side of the page
+    zIndex: 1000,      // Ensure it is above other content
   };
 
   const brandStyle = {

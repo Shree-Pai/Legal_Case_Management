@@ -15,11 +15,16 @@ const Login = ({ handleLogin }) => { // Receive handleLogin as prop
     alignItems: "center",
     justifyContent: "center",
     height: "100vh",
-    backgroundColor: "#2c3e50", // Dark background for the container
+    backgroundColor: "#2c3e50", // Fallback color for browsers that don't load the background image
+    backgroundImage: "url('https://img.freepik.com/premium-photo/law-order-court-system-scales-themis_930683-4915.jpg')", // Add your background image URL here
+    backgroundSize: "cover", // Ensure the background image covers the entire page
+    backgroundPosition: "center", // Position the background image at the center
+    backgroundRepeat: "no-repeat", // Prevent the background image from repeating
     fontFamily: "Arial, sans-serif",
     color: "#ecf0f1", // Light text color
     padding: "20px",
   };
+  
 
   const formStyle = {
     display: "flex",
