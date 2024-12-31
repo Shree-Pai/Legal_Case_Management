@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from models import db, Lawyer,Client,Case,Appointment,Admin
+from models import db, Lawyer,Client,Case,Appointment,Admin,AppointmentDetails
 from config import Config
 import json
 from werkzeug.security import generate_password_hash
@@ -676,23 +676,40 @@ def add_appointment():
 @app.route('/appointments/<int:appointment_id>', methods=['PUT'])
 def update_appointment(appointment_id):
     try:
+        # Fetch the appointment to update
         appointment = Appointment.query.get(appointment_id)
         if not appointment:
             return jsonify({'message': 'Appointment not found'}), 404
 
         data = request.get_json()
-        
+
+        # Extract updated fields
+        new_date = datetime.strptime(data['date'], '%Y-%m-%d').date() if 'date' in data else appointment.appointment_date
+        new_time = datetime.strptime(data['time'], '%H:%M:%S').time() if 'time' in data else appointment.appointment_time
+        new_lawyer_id = int(data['lawyer_id']) if 'lawyer_id' in data else appointment.lawyer_id
+
+        # Check for conflicting appointments for the same lawyer
+        conflict = Appointment.query.filter(
+            Appointment.lawyer_id == new_lawyer_id,
+            Appointment.appointment_date == new_date,
+            Appointment.appointment_time == new_time,
+            Appointment.appointment_id != appointment_id  # Exclude the current appointment
+        ).first()
+
+        if conflict:
+            return jsonify({
+                'message': f'Lawyer appointment already booked at {new_time} on {new_date}. Please choose another time.'
+            }), 409
+
         # Update appointment details
-        if 'date' in data:
-            appointment.appointment_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-        if 'time' in data:
-            appointment.appointment_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+        appointment.appointment_date = new_date
+        appointment.appointment_time = new_time
         if 'appointment_status' in data:
             appointment.appointment_status = data['appointment_status']
         if 'client_id' in data:
             appointment.client_id = int(data['client_id'])
         if 'lawyer_id' in data:
-            appointment.lawyer_id = int(data['lawyer_id'])
+            appointment.lawyer_id = new_lawyer_id
         if 'case_id' in data:
             appointment.case_id = int(data['case_id']) if data['case_id'] else None
 
@@ -713,29 +730,13 @@ def update_appointment(appointment_id):
             }
         }), 200
 
-    except ValueError as e:
+    except ValueError:
         return jsonify({'message': 'Invalid date or time format'}), 400
     except Exception as e:
         print('Error updating appointment:', str(e))
         db.session.rollback()
         return jsonify({'message': 'Error updating appointment', 'error': str(e)}), 500
 
-@app.route('/appointments/<int:appointment_id>', methods=['DELETE'])
-def delete_appointment(appointment_id):
-    try:
-        appointment = Appointment.query.get(appointment_id)
-        if not appointment:
-            return jsonify({'message': 'Appointment not found'}), 404
-
-        db.session.delete(appointment)
-        db.session.commit()
-
-        return jsonify({'message': 'Appointment deleted successfully'}), 200
-
-    except Exception as e:
-        print('Error deleting appointment:', str(e))
-        db.session.rollback()
-        return jsonify({'message': 'Error deleting appointment', 'error': str(e)}), 500
 
 @app.route('/debug/cases', methods=['GET'])
 def debug_cases():
@@ -846,6 +847,8 @@ def update_admin_profile(admin_id):
         db.session.rollback()
         return jsonify({'message': 'Error updating profile', 'error': str(e)}), 500
 
+from sqlalchemy.sql import text  # Import the text function
+
 @app.route('/view/<table>', methods=['GET'])
 @jwt_required()
 def get_view_details(table):
@@ -855,27 +858,24 @@ def get_view_details(table):
         if not current_user_id:
             return jsonify({'message': 'Invalid or expired token'}), 401
 
-        # Print debug information
         print(f"User ID: {current_user_id}, Accessing table: {table}")
 
         if table == 'cases':
-            query = """
-                SELECT 
+            query = text("""
+                SELECT
                     c.case_id,
                     c.title,
                     c.description,
                     c.status,
                     cl.name as client_name,
-                    l.name as lawyer_name,
-                    c.filing_date,
-                    c.closing_date
+                    l.name as lawyer_name
                 FROM cases c
                 LEFT JOIN clients cl ON c.client_id = cl.client_id
                 LEFT JOIN lawyers l ON c.lawyer_id = l.lawyer_id
                 ORDER BY c.case_id DESC
-            """
+            """)
         elif table == 'appointments':
-            query = """
+            query = text("""
                 SELECT 
                     a.appointment_id,
                     cl.name as client_name,
@@ -889,9 +889,9 @@ def get_view_details(table):
                 LEFT JOIN lawyers l ON a.lawyer_id = l.lawyer_id
                 LEFT JOIN cases c ON a.case_id = c.case_id
                 ORDER BY a.appointment_date DESC, a.appointment_time DESC
-            """
+            """)
         elif table == 'clients':
-            query = """
+            query = text("""
                 SELECT 
                     c.client_id,
                     c.name,
@@ -905,9 +905,9 @@ def get_view_details(table):
                 LEFT JOIN cases cs ON c.client_id = cs.client_id
                 GROUP BY c.client_id, c.name, c.email, c.phone, c.address, l.name
                 ORDER BY c.client_id DESC
-            """
+            """)
         elif table == 'lawyers':
-            query = """
+            query = text("""
                 SELECT 
                     l.lawyer_id,
                     l.name,
@@ -922,13 +922,15 @@ def get_view_details(table):
                 LEFT JOIN clients cl ON l.lawyer_id = cl.lawyer_id
                 GROUP BY l.lawyer_id, l.name, l.email, l.phone, l.specialization, l.experience_years
                 ORDER BY l.lawyer_id DESC
-            """
+            """)
         else:
             return jsonify({'message': 'Invalid table name'}), 400
 
+        # Execute the query
         result = db.session.execute(query)
-        data = [dict(row) for row in result]
-        
+        # Fetch data and convert rows into dictionaries
+        data = [dict(row._mapping) for row in result]
+
         # Convert datetime objects to strings
         for row in data:
             for key, value in row.items():
@@ -941,9 +943,10 @@ def get_view_details(table):
         print('Error in get_view_details:', str(e))
         return jsonify({
             'message': 'Error fetching view details',
-            'error': str(e),
-            'details': 'Token validation failed'
+            'error': str(e)
         }), 500
+
+
 
 @app.route('/verify-token', methods=['GET'])
 @jwt_required()
@@ -958,6 +961,35 @@ def verify_token():
     except Exception as e:
         print('Token verification error:', str(e))
         return jsonify({'message': 'Token verification failed', 'error': str(e)}), 401
+
+@app.route('/all-appointments', methods=['GET'])  # Adjust route if needed
+def fetch_appointments():  # Renamed function to avoid conflict
+    try:
+        # Query the view
+        appointments = AppointmentDetails.query.all()
+        # Serialize the data
+        results = [
+            {
+                'appointment_id': a.appointment_id,
+                'appointment_date': a.appointment_date,
+                'appointment_time': str(a.appointment_time),
+                'lawyer_id': a.lawyer_id,
+                'lawyer_name': a.lawyer_name,
+                'lawyer_email': a.lawyer_email,
+                'lawyer_phone': a.lawyer_phone,
+                'client_id': a.client_id,
+                'client_name': a.client_name,
+                'client_email': a.client_email,
+                'case_id': a.case_id,
+                'case_title': a.case_title,
+                'case_status': a.case_status,
+                'number_of_cases': a.number_of_cases
+            } for a in appointments
+        ]
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():

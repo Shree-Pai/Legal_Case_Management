@@ -82,5 +82,22 @@ class Appointment(db.Model):
     def __repr__(self):
         return f'<Appointment {self.appointment_id}>'
 
+# Define a model for the view
+class AppointmentDetails(db.Model):
+    __tablename__ = 'appointment_details'
 
+    appointment_id = db.Column(db.Integer, primary_key=True)
+    appointment_date = db.Column(db.Date, nullable=False)
+    appointment_time = db.Column(db.Time, nullable=False)
+    lawyer_id = db.Column(db.Integer, nullable=False)
+    lawyer_name = db.Column(db.String(255), nullable=False)
+    lawyer_email = db.Column(db.String(255), nullable=False)
+    lawyer_phone = db.Column(db.String(20), nullable=False)
+    client_id = db.Column(db.Integer, nullable=False)
+    client_name = db.Column(db.String(255), nullable=False)
+    client_email = db.Column(db.String(255), nullable=False)
+    case_id = db.Column(db.Integer, nullable=True)
+    case_title = db.Column(db.String(255), nullable=True)
+    case_status = db.Column(db.String(50), nullable=True)
+    number_of_cases = db.Column(db.Integer, nullable=False)
 
