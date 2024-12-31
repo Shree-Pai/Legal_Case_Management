@@ -37,7 +37,13 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     cursor: "pointer",
     textDecoration: "none",
     marginLeft: "10px",
+    display: "inline-block", // Make sure they behave as buttons
+    width: "auto",          // Ensure the width adjusts to content, but stays consistent
+    minWidth: "50px",      // Optional: Minimum width to ensure uniform button size
+    textAlign: "center",    // Center text inside buttons
   };
+  
+  
 
   const handleLogoutClick = () => {
     localStorage.clear(); // Clear all stored data

@@ -15,7 +15,7 @@ const Register = () => {
     justifyContent: "center",
     height: "100vh",
     backgroundColor: "#2c3e50", // Fallback color for browsers that don't load the background image
-    backgroundImage: "url('https://img.freepik.com/premium-photo/law-order-court-system-scales-themis_930683-4915.jpg')", // Add your background image URL here
+    backgroundImage: "url('https://static.wixstatic.com/media/e1b86d_650c913c766444b3ba500e6a2d3fff13~mv2.jpeg/v1/fill/w_961,h_420,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/e1b86d_650c913c766444b3ba500e6a2d3fff13~mv2.jpeg')", // Add your background image URL here
     backgroundSize: "cover", // Ensure the background image covers the entire page
     backgroundPosition: "center", // Position the background image at the center
     backgroundRepeat: "no-repeat", // Prevent the background image from repeating

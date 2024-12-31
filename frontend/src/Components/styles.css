@@ -67,18 +67,25 @@ button:disabled {
 }
 
 /* Table styles */
+
+
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
   background-color: #2c3e50;
+  cursor:pointer;
 }
+
 
 th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #465669;
+  
 }
+
 
 th {
   background-color: #2c3e50;
@@ -86,15 +93,16 @@ th {
 }
 
 tr:hover {
-  background-color: #2c3e50;
+  background-color: #2b3b4a;
 }
 
-/* Action buttons in table */
-.edit, .delete {
-  padding: 6px 12px;
+/* Optional: Style buttons for better alignment */
+button.edit, button.delete {
   margin: 0 5px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .edit {
@@ -404,6 +412,7 @@ option {
   margin-top: 10px;
 }
 
+
 .view-table th {
   background-color: #2c3e50;
   color: #3498db;
@@ -418,9 +427,7 @@ option {
 }
 
 .view-table tr:hover {
-  background-color: #2c3e50;
+  background-color: #2b3b4a;
 }
 
-.view-table tr:nth-child(even) {
-  background-color: #2c3e50;
-}
+
