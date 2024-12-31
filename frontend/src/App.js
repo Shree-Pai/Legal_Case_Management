@@ -10,7 +10,7 @@ import Clients from "./Components/Clients";
 import Appointments from "./Components/Appointments";
 import Profile from "./Components/Profile";
 import Lawyer from "./Components/Lawyer";
-import Schedule from "./Components/schedule";
+// import Schedule from "./Components/schedule";
 import ViewDetails from './Components/ViewDetails';
 
 const ProtectedRoute = ({ children }) => {
@@ -202,7 +202,7 @@ function App() {
                       <Route path="/cases" element={<Cases />} />
                       <Route path="/clients" element={<Clients />} />
                       <Route path="/appointments" element={<Appointments />} />
-                      <Route path="/schedule" element={<Schedule />} />
+                      {/* <Route path="/schedule" element={<Schedule />} /> */}
                       <Route path="/lawyer" element={<Lawyer />} />
                       <Route path="/view-details" element={<ViewDetails />} />
                     </Routes>

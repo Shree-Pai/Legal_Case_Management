@@ -872,7 +872,7 @@ def get_view_details(table):
                 FROM cases c
                 LEFT JOIN clients cl ON c.client_id = cl.client_id
                 LEFT JOIN lawyers l ON c.lawyer_id = l.lawyer_id
-                ORDER BY c.case_id DESC
+                ORDER BY c.case_id ASC
             """)
         elif table == 'appointments':
             query = text("""
@@ -881,14 +881,14 @@ def get_view_details(table):
                     cl.name as client_name,
                     l.name as lawyer_name,
                     c.title as case_title,
-                    DATE_FORMAT(a.appointment_date, '%%Y-%%m-%%d') as appointment_date,
-                    TIME_FORMAT(a.appointment_time, '%%H:%%i:%%s') as appointment_time,
+                    IFNULL(DATE_FORMAT(a.appointment_date, '%Y-%m-%d'), 'N/A') AS appointment_date,
+                    IFNULL(TIME_FORMAT(a.appointment_time, '%H:%i:%s'), 'N/A') AS appointment_time,
                     a.appointment_status
                 FROM appointments a
                 LEFT JOIN clients cl ON a.client_id = cl.client_id
                 LEFT JOIN lawyers l ON a.lawyer_id = l.lawyer_id
                 LEFT JOIN cases c ON a.case_id = c.case_id
-                ORDER BY a.appointment_date DESC, a.appointment_time DESC
+                ORDER BY a.appointment_id ASC
             """)
         elif table == 'clients':
             query = text("""
@@ -904,7 +904,7 @@ def get_view_details(table):
                 LEFT JOIN lawyers l ON c.lawyer_id = l.lawyer_id
                 LEFT JOIN cases cs ON c.client_id = cs.client_id
                 GROUP BY c.client_id, c.name, c.email, c.phone, c.address, l.name
-                ORDER BY c.client_id DESC
+                ORDER BY c.client_id ASC
             """)
         elif table == 'lawyers':
             query = text("""
@@ -915,14 +915,18 @@ def get_view_details(table):
                     l.phone,
                     l.specialization,
                     l.experience_years,
-                    COUNT(DISTINCT c.case_id) as active_cases,
-                    COUNT(DISTINCT cl.client_id) as total_clients
+                    COUNT(DISTINCT CASE 
+                    WHEN c.status IN ('Open', 'In Progress', 'Under Review', 'Awaiting Judgement') 
+                    THEN c.case_id 
+                    END) AS active_cases,
+                COUNT(DISTINCT cl.client_id) AS total_clients
                 FROM lawyers l
-                LEFT JOIN cases c ON l.lawyer_id = c.lawyer_id AND c.status = 'Active'
+                LEFT JOIN cases c ON l.lawyer_id = c.lawyer_id
                 LEFT JOIN clients cl ON l.lawyer_id = cl.lawyer_id
                 GROUP BY l.lawyer_id, l.name, l.email, l.phone, l.specialization, l.experience_years
-                ORDER BY l.lawyer_id DESC
+                ORDER BY l.lawyer_id ASC
             """)
+
         else:
             return jsonify({'message': 'Invalid table name'}), 400
 
@@ -945,7 +949,6 @@ def get_view_details(table):
             'message': 'Error fetching view details',
             'error': str(e)
         }), 500
-
 
 
 @app.route('/verify-token', methods=['GET'])
